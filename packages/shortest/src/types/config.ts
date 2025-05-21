@@ -24,8 +24,8 @@ export const ANTHROPIC_MODELS = [
 export const anthropicModelSchema = z.enum(ANTHROPIC_MODELS);
 export type AnthropicModel = z.infer<typeof anthropicModelSchema>;
 
-const aiSchema = z
-  .object({
+const aiSchema = z.discriminatedUnion("provider", [
+  z.object({
     provider: z.literal("anthropic"),
     apiKey: z
       .string()
@@ -35,8 +35,33 @@ const aiSchema = z
           process.env.ANTHROPIC_API_KEY!,
       ),
     model: z.enum(ANTHROPIC_MODELS).default(ANTHROPIC_MODELS[0]),
-  })
-  .strict();
+  }).strict(),
+  z.object({
+    provider: z.literal("azure"),
+    apiKey: z
+      .string()
+      .default(
+        () =>
+          process.env[getShortestEnvName("AZURE_API_KEY")] ||
+          process.env.AZURE_API_KEY!,
+      ),
+    endpoint: z
+      .string()
+      .url("must be a valid URL")
+      .default(
+        () =>
+          process.env[getShortestEnvName("AZURE_OPENAI_ENDPOINT")] ||
+          process.env.AZURE_OPENAI_ENDPOINT!,
+      ),
+    deployment: z
+      .string()
+      .default(
+        () =>
+          process.env[getShortestEnvName("AZURE_OPENAI_DEPLOYMENT")] ||
+          process.env.AZURE_OPENAI_DEPLOYMENT!,
+      ),
+  }).strict(),
+]);
 export type AIConfig = z.infer<typeof aiSchema>;
 
 const cachingSchema = z
@@ -78,7 +103,16 @@ export const configSchema = z
 export const userConfigSchema = configSchema.extend({
   browser: browserSchema.optional(),
   testPattern: testPatternSchema.optional(),
-  ai: aiSchema.strict().partial().optional(),
+  ai: z.union([
+    aiSchema,
+    z.object({
+      provider: z.enum(["anthropic", "azure"]),
+      apiKey: z.string().optional(),
+      model: z.enum(ANTHROPIC_MODELS).optional(),
+      endpoint: z.string().optional(),
+      deployment: z.string().optional(),
+    }),
+  ]).optional(),
   caching: cachingSchema.strict().partial().optional(),
 });
 

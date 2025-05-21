@@ -1,10 +1,33 @@
 import type { ShortestConfig } from "@antiwork/shortest";
 
-export default {
+// Example with Anthropic
+const anthropicConfig = {
   headless: false,
   baseUrl: "http://localhost:3000",
   testPattern: "**/*.test.ts",
   ai: {
     provider: "anthropic",
+    // Uncomment and add your API key if not using environment variables
+    // apiKey: "your-anthropic-api-key",
   }
 } satisfies ShortestConfig;
+
+// Example with Azure OpenAI
+const azureConfig = {
+  headless: false,
+  baseUrl: "http://localhost:3000",
+  testPattern: "**/*.test.ts",
+  ai: {
+    provider: "azure",
+    // Uncomment and add your Azure API key if not using environment variables
+    // apiKey: "your-azure-api-key",
+    // endpoint: "https://your-resource-name.openai.azure.com",
+    // deployment: "your-deployment-name",
+  }
+} satisfies ShortestConfig;
+
+// Export the configuration you want to use
+export default anthropicConfig;
+
+// To use Azure OpenAI instead, comment out the line above and uncomment the line below
+// export default azureConfig;

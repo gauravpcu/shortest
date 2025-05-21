@@ -2,7 +2,7 @@ import type { ShortestConfig } from "@antiwork/shortest";
 
 export default {
   headless: false,
-  baseUrl: "http://localhost:3000",
+  baseUrl: "http://buyer.procurementpartners.com",
   testPattern: "app/**/*.test.ts",
   ai: {
     provider: "anthropic",
