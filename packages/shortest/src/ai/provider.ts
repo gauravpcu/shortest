@@ -1,4 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOllama } from "@ai-sdk/ollama";
 import { LanguageModelV1 } from "ai";
 import { AIConfig } from "@/types";
 import { AIError } from "@/utils/errors";
@@ -13,6 +14,9 @@ export const createProvider = (aiConfig: AIConfig): LanguageModelV1 => {
     case "anthropic":
       const anthropic = createAnthropic({ apiKey: aiConfig.apiKey });
       return anthropic(aiConfig.model) as LanguageModelV1;
+    case "ollama":
+      const ollama = createOllama();
+      return ollama(aiConfig.model) as LanguageModelV1;
     default:
       throw new AIError(
         "unsupported-provider",

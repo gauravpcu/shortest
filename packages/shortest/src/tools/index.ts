@@ -90,5 +90,18 @@ export const createToolRegistry = (): ToolRegistry => {
   Object.entries(toolsToRegister).forEach(([key, value]) => {
     toolRegistry.registerTool(key, value);
   });
+
+  // Register latest computer and bash tools under generic names
+  toolRegistry.registerTool("computer", {
+    name: "computer",
+    category: "provider",
+    factory: createAnthropicComputer20250124,
+  });
+  toolRegistry.registerTool("bash", {
+    name: "bash",
+    category: "provider",
+    factory: createAnthropicBash20250124,
+  });
+
   return toolRegistry;
 };

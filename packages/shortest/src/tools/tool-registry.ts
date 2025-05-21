@@ -107,7 +107,7 @@ export class ToolRegistry {
    */
   public getTools(
     provider: string,
-    model: AnthropicModel,
+    model: string, // Changed from AnthropicModel to string
     browserTool: BrowserTool,
   ): Record<string, Tool> {
     const selectedTools: Record<string, Tool> = {};
@@ -151,31 +151,53 @@ export class ToolRegistry {
    */
   private getProviderTools(
     provider: string,
-    model: AnthropicModel,
+    model: string, // Changed from AnthropicModel to string
     browserTool: BrowserTool,
   ): Record<string, Tool> {
     const tools: Record<string, Tool> = {};
 
-    try {
-      const computerToolEntry = this.getProviderToolEntry(
-        provider,
-        model,
-        "computer",
-      );
-      tools[computerToolEntry.name] = computerToolEntry.factory(browserTool);
-    } catch (error) {
-      if (!(error instanceof ShortestError)) throw error;
-      this.log.trace("Computer tool not found for model, skipping", { model });
-    }
+    if (provider === "ollama") {
+      const computerToolEntry = this.tools.get("computer");
+      if (computerToolEntry && computerToolEntry.category === "provider") {
+        tools[computerToolEntry.name] = computerToolEntry.factory(browserTool);
+      } else {
+        this.log.trace("Generic computer tool not found or not a provider tool, skipping for Ollama");
+      }
 
-    try {
-      const bashToolEntry = this.getProviderToolEntry(provider, model, "bash");
-      // @ts-ignore
-      // For some reason, it expects an argument, but it doesn't take any
-      tools["bash"] = bashToolEntry.factory();
-    } catch (error) {
-      if (!(error instanceof ShortestError)) throw error;
-      this.log.trace("Bash tool not found for model, skipping", { model });
+      const bashToolEntry = this.tools.get("bash");
+      if (bashToolEntry && bashToolEntry.category === "provider") {
+        // Assuming bash tool factory does not take browserTool, based on existing logic
+        // @ts-ignore - Existing ignore for factory arguments
+        tools[bashToolEntry.name] = bashToolEntry.factory();
+      } else {
+        this.log.trace("Generic bash tool not found or not a provider tool, skipping for Ollama");
+      }
+    } else { // Assuming Anthropic or other providers that use versioned tools
+      try {
+        const computerToolEntry = this.getProviderToolEntry(
+          provider,
+          model as AnthropicModel, // Cast model
+          "computer",
+        );
+        tools[computerToolEntry.name] = computerToolEntry.factory(browserTool);
+      } catch (error) {
+        if (!(error instanceof ShortestError)) throw error;
+        this.log.trace("Computer tool not found for model, skipping", { model });
+      }
+
+      try {
+        const bashToolEntry = this.getProviderToolEntry(
+          provider,
+          model as AnthropicModel, // Cast model
+          "bash",
+        );
+        // @ts-ignore
+        // For some reason, it expects an argument, but it doesn't take any
+        tools["bash"] = bashToolEntry.factory();
+      } catch (error) {
+        if (!(error instanceof ShortestError)) throw error;
+        this.log.trace("Bash tool not found for model, skipping", { model });
+      }
     }
 
     return tools;

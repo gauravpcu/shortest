@@ -5,6 +5,17 @@ export default {
   baseUrl: "http://localhost:3000",
   testPattern: "**/*.test.ts",
   ai: {
-    provider: "anthropic",
+    // Configure your AI provider here. Shortest supports Anthropic and Ollama.
+
+    // --- Anthropic Configuration ---
+    // provider: "anthropic",
+    // model: "claude-3-5-sonnet-latest", // Example: "claude-3-opus-20240229", "claude-3-haiku-20240307"
+    // apiKey: process.env.ANTHROPIC_API_KEY, // Ensure this environment variable is set
+
+    // --- Ollama Configuration ---
+    // Uncomment the following lines to use Ollama:
+    provider: "ollama", // Set provider to "ollama"
+    model: "llama3", // Specify the Ollama model you want to use (e.g., "llama2", "mistral")
+    // ollamaBaseUrl: "http://localhost:11434", // Optional: Only set if your Ollama instance is not at the default URL
   }
 } satisfies ShortestConfig;
