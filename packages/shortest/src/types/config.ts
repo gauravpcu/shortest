@@ -24,8 +24,7 @@ export const ANTHROPIC_MODELS = [
 export const anthropicModelSchema = z.enum(ANTHROPIC_MODELS);
 export type AnthropicModel = z.infer<typeof anthropicModelSchema>;
 
-// Schema for Anthropic AI Configuration
-const anthropicAISchema = z
+const aiSchema = z
   .object({
     provider: z.literal("anthropic"),
     apiKey: z
@@ -35,24 +34,9 @@ const anthropicAISchema = z
           process.env[getShortestEnvName("ANTHROPIC_API_KEY")] ||
           process.env.ANTHROPIC_API_KEY!,
       ),
-    model: anthropicModelSchema.default(ANTHROPIC_MODELS[0]),
+    model: z.enum(ANTHROPIC_MODELS).default(ANTHROPIC_MODELS[0]),
   })
   .strict();
-
-// Schema for Ollama AI Configuration
-const ollamaAISchema = z
-  .object({
-    provider: z.literal("ollama"),
-    model: z.string().default("llama3"), // Default Ollama model
-    ollamaBaseUrl: z.string().url().optional(),
-  })
-  .strict();
-
-// Union of AI provider schemas
-const aiSchema = z.discriminatedUnion("provider", [
-  anthropicAISchema,
-  ollamaAISchema,
-]);
 export type AIConfig = z.infer<typeof aiSchema>;
 
 const cachingSchema = z
@@ -84,7 +68,7 @@ export const configSchema = z
     baseUrl: z.string().url("must be a valid URL"),
     browser: browserSchema.strict().partial().default(browserSchema.parse({})),
     testPattern: testPatternSchema,
-    anthropicKey: z.string().optional(), // This seems like a legacy/deprecated field, consider removing if not used
+    anthropicKey: z.string().optional(),
     ai: aiSchema,
     mailosaur: mailosaurSchema.optional(),
     caching: cachingSchema.optional().default(cachingSchema.parse({})),
@@ -94,16 +78,7 @@ export const configSchema = z
 export const userConfigSchema = configSchema.extend({
   browser: browserSchema.optional(),
   testPattern: testPatternSchema.optional(),
-  // For user config, AI object itself is optional, and its contents are partial.
-  // We need to make the union itself optional, and then make each member of the union partial.
-  // This is a bit tricky with discriminated unions.
-  // A common approach is to make the entire AI block optional and then use .partial() on each part of the union for the user config.
-  ai: z
-    .discriminatedUnion("provider", [
-      anthropicAISchema.partial(),
-      ollamaAISchema.partial(),
-    ])
-    .optional(),
+  ai: aiSchema.strict().partial().optional(),
   caching: cachingSchema.strict().partial().optional(),
 });
 
